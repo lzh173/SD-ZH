@@ -8,7 +8,7 @@ namespace widgets
 	template <typename T>
 	inline void AddButton(T &json, bool allow_add)
 	{
-		if (allow_add if (allow_add && ImGui::Button("Add..."))if (allow_add && ImGui::Button("Add...")) ImGui::Button("添加..."))
+		if (allow_add && ImGui::Button("添加..."))
 			ImGui::OpenPopup("添加项目");
 
 		ImVec2 center = ImGui::GetMainViewport()->GetCenter();
