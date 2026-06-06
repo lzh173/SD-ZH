@@ -299,9 +299,6 @@ namespace style
             0xF900, 0xFAFF, // CJK Compatibility Ideographs
             0xFE10, 0xFE6F, // Vertical Forms / Small Form Variants
             0xFF00, 0xFFEF, // Fullwidth Forms
-            0x1F000, 0x1F02F, // Mahjong
-            0x1F030, 0x1F09F, // Domino
-            0x20000, 0x2FA1F, // CJK Extension B/C/D/E
             0
         };
         static ImFontConfig config;
