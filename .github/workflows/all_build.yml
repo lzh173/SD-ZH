@@ -38,10 +38,17 @@ jobs:
         if: steps.win-deps-x64.outputs.cache-hit != 'true'
         uses: microsoft/setup-msbuild@v2
 
-      - name: Configure vcpkg
-        if: steps.win-deps-x64.outputs.cache-hit != 'true'
-        shell: powershell
-        run: ${{github.workspace}}\windows\Configure-vcpkg.ps1 -platform x64-windows
+- name: Configure vcpkg
+  shell: powershell
+  run: |
+    if (Test-Path "$Env:GITHUB_WORKSPACE\vcpkg") {
+      Set-Location "$Env:GITHUB_WORKSPACE\vcpkg"
+      git fetch --all
+      git checkout master
+      git pull --ff-only
+      .\bootstrap-vcpkg.bat
+    }
+    & "$Env:GITHUB_WORKSPACE\windows\Configure-vcpkg.ps1" -platform x64-windows
 
       - name: Clean up vcpkg
         if: steps.win-deps-x64.outputs.cache-hit != 'true'
