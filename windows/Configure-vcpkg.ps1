@@ -305,7 +305,10 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
     cd uhd\host
     $null = mkdir build
     cd build
-    cmake $build_args -DENABLE_MAN_PAGES=OFF -DENABLE_MANUAL=OFF -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_UTILS=OFF -DENABLE_TESTS=OFF ..
+    python -m pip install mako ruamel.yaml
+    $py_exe=$(python -c "import sys; print(sys.executable)")
+    cmake $build_args -DPython3_EXECUTABLE="$py_exe" -DENABLE_MAN_PAGES=OFF -DENABLE_MANUAL=OFF -DENABLE_PYTHON_API=OFF -DENABLE_EXAMPLES=OFF -DENABLE_UTILS=OFF -DENABLE_TESTS=OFF ..
+    if($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     cmake --build . --config Release
     cmake --install .
     cd ..\..\..
@@ -315,15 +318,22 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 cd ..
 Remove-Item -Recurse -Force -ErrorAction SilentlyContinue build
 
-#Install SDRPlay API
-Get-VerifiedZip -Uri "https://www.satdump.org/SDRPlay.zip" -OutFile sdrplay.zip
-mkdir sdrplay | Out-Null
-Expand-Archive sdrplay.zip .
-cp sdrplay\API\inc\*.h installed\$platform\include
-cp sdrplay\API\$sdrplay_arch\sdrplay_api.dll installed\$platform\bin
-cp sdrplay\API\$sdrplay_arch\sdrplay_api.lib installed\$platform\lib
-Remove-Item sdrplay -Force -Recurse -ErrorAction SilentlyContinue
-Remove-Item sdrplay.zip
+#Install SDRPlay API (optional; the SDRPlay plugin is skipped if unavailable)
+try
+{
+    Get-VerifiedZip -Uri "https://www.satdump.org/SDRPlay.zip" -OutFile sdrplay.zip
+    mkdir sdrplay | Out-Null
+    Expand-Archive sdrplay.zip .
+    cp sdrplay\API\inc\*.h installed\$platform\include
+    cp sdrplay\API\$sdrplay_arch\sdrplay_api.dll installed\$platform\bin
+    cp sdrplay\API\$sdrplay_arch\sdrplay_api.lib installed\$platform\lib
+    Remove-Item sdrplay -Force -Recurse -ErrorAction SilentlyContinue
+    Remove-Item sdrplay.zip
+}
+catch
+{
+    Write-Warning "SDRPlay API download failed, skipping SDRPlay support: $_"
+}
 
 #Clean Up (Some packages are silly)
 mv installed\$platform\lib\*.dll installed\$platform\bin\
