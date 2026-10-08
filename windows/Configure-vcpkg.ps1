@@ -80,6 +80,18 @@ git clone https://github.com/microsoft/vcpkg
 cd vcpkg
 .\bootstrap-vcpkg.bat
 
+# Pre-seed pkgconf from MSYS2 cache so openblas does not need to download it.
+if (Test-Path "C:\tools\msys64\var\cache\pacman\pkg")
+{
+    $pkg = Get-ChildItem "C:\tools\msys64\var\cache\pacman\pkg" -Filter "mingw-w64-x86_64-pkgconf-*.pkg.tar.zst" | Sort-Object Name -Descending | Select-Object -First 1
+    if ($pkg)
+    {
+        New-Item -ItemType Directory -Force "downloads" | Out-Null
+        Copy-Item $pkg.FullName "downloads\msys2-$($pkg.Name)"
+        Write-Output "Pre-seeded $($pkg.Name) into vcpkg downloads"
+    }
+}
+
 # Core packages. libxml2 is for libiio. These must succeed.
 .\vcpkg install --triplet $platform pthreads libjpeg-turbo tiff libpng glfw3 libusb fftw3 libxml2 portaudio nng zstd curl[schannel]
 

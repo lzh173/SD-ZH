@@ -38,25 +38,10 @@ jobs:
         if: steps.win-deps-x64.outputs.cache-hit != 'true'
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install MSYS2 pkgconf (pre-seed for openblas)
-        shell: powershell
-        run: |
-          if (-Not (Test-Path "C:\tools\msys64")) {
-            choco install msys2 -y
-            refreshenv
-          }
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm mingw-w64-x86_64-pkgconf"
-          $pkg = Get-ChildItem "C:\tools\msys64\var\cache\pacman\pkg" -Filter "mingw-w64-x86_64-pkgconf-*.pkg.tar.zst" | Sort-Object Name -Descending | Select-Object -First 1
-          if ($pkg) {
-            New-Item -ItemType Directory -Force "$Env:GITHUB_WORKSPACE\vcpkg\downloads" | Out-Null
-            Copy-Item $pkg.FullName "$Env:GITHUB_WORKSPACE\vcpkg\downloads\msys2-$($pkg.Name)"
-            Write-Host "Pre-seeded $($pkg.Name) into vcpkg downloads"
-          }
-
       - name: Configure vcpkg
         shell: powershell
         run: |
-          if (Test-Path "$Env:GITHUB_WORKSPACE\vcpkg") {
+          if (Test-Path "$Env:GITHUB_WORKSPACE\vcpkg\.git") {
             Set-Location "$Env:GITHUB_WORKSPACE\vcpkg"
             git fetch --all
             git checkout master
