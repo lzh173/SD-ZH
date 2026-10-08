@@ -135,7 +135,7 @@ if($env:PROCESSOR_ARCHITECTURE -ne $arch)
 Write-Output "Building libusb..."
 git clone https://github.com/HannesFranke-smartoptics/libusb -b raw_io_v2
 cd libusb\msvc
-Get-ChildItem -Recurse -Filter *.vcxproj | ForEach-Object {
+Get-ChildItem -Include *.vcxproj,*.props -Recurse | ForEach-Object {
     $proj = Get-Content -Raw $_.FullName
     $proj = $proj -replace '<TreatWarningAsError>true</TreatWarningAsError>', '<TreatWarningAsError>false</TreatWarningAsError>'
     Set-Content -NoNewline -Path $_.FullName -Value $proj
