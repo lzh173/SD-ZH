@@ -253,9 +253,17 @@ Remove-Item -Recurse -Force -ErrorAction SilentlyContinue libad9361-iio
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 {
     Write-Output "Building LimeSuite..."
-    Get-VerifiedZip -Uri "https://www.satdump.org/FX3-SDK.zip" -OutFile FX3-SDK.zip
-    Expand-Archive FX3-SDK.zip .
-    $fx3_arg = "-DFX3_SDK_PATH=$($(Get-Item .\FX3-SDK).FullName)"
+    $fx3_arg = ""
+    try
+    {
+        Get-VerifiedZip -Uri "https://www.satdump.org/FX3-SDK.zip" -OutFile FX3-SDK.zip
+        Expand-Archive FX3-SDK.zip .
+        $fx3_arg = "-DFX3_SDK_PATH=$($(Get-Item .\FX3-SDK).FullName)"
+    }
+    catch
+    {
+        Write-Warning "FX3-SDK.zip download failed, building LimeSuite without FX3 support: $_"
+    }
     git clone https://github.com/myriadrf/LimeSuite --depth 1 -b v23.11.0
     cd LimeSuite
     $null = mkdir build-dir
@@ -285,7 +293,7 @@ Remove-Item -Recurse -Force -ErrorAction SilentlyContinue bladeRF
 # Not compatible with ARM at this time
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 {
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue FX3-SDK, FX3-SDK.zip
+    if($fx3_arg) { Remove-Item -Recurse -Force -ErrorAction SilentlyContinue FX3-SDK, FX3-SDK.zip }
     Write-Output "Building UHD..."
     git clone https://github.com/EttusResearch/uhd --depth 1 -b v4.7.0.0
     cd uhd\host
