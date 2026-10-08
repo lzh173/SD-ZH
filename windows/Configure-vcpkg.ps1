@@ -93,7 +93,12 @@ if (Test-Path "C:\tools\msys64\var\cache\pacman\pkg")
 }
 
 # Core packages. libxml2 is for libiio. These must succeed.
-.\vcpkg install --triplet $platform pthreads libjpeg-turbo tiff libpng glfw3 libusb fftw3 libxml2 portaudio nng zstd curl[schannel]
+.\vcpkg install --triplet $platform pthreads libjpeg-turbo tiff libpng glfw3 libusb fftw3 libxml2 portaudio nng zstd curl[sspi]
+if ($LASTEXITCODE -ne 0)
+{
+    Write-Error "Core vcpkg packages failed to install."
+    exit 1
+}
 
 # Optional: armadillo pulls openblas which needs an MSYS2 pkgconf download that
 # can 404 when the pinned version rotates out of mirrors. Losing these only
@@ -303,3 +308,10 @@ Remove-Item sdrplay.zip
 mv installed\$platform\lib\*.dll installed\$platform\bin\
 mv installed\$platform\bin\*.lib installed\$platform\lib\
 cd ..
+
+if (-Not (Test-Path "installed\$platform\lib\pthreadVC3.lib"))
+{
+    Write-Error "pthreadVC3.lib not found after vcpkg install. Installed libs:"
+    Get-ChildItem "installed\$platform\lib" -Filter "*.lib" | ForEach-Object { Write-Output $_.Name }
+    exit 1
+}
