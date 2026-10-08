@@ -135,8 +135,8 @@ if($env:PROCESSOR_ARCHITECTURE -ne $arch)
 Write-Output "Building libusb..."
 git clone https://github.com/HannesFranke-smartoptics/libusb -b raw_io_v2
 cd libusb\msvc
-msbuild -m -v:m -p:Platform=$generator,Configuration=Release .\libusb.sln
-msbuild -m -v:m -p:Platform=$generator,Configuration=Debug .\libusb.sln
+msbuild -m -v:m -p:Platform=$generator -p:Configuration=Release -p:TreatWarningAsError=false .\libusb.sln
+msbuild -m -v:m -p:Platform=$generator -p:Configuration=Debug -p:TreatWarningAsError=false .\libusb.sln
 $toolset_used=$(get-childitem ..\build\)[0].Name
 cp -Force ..\build\$toolset_used\$generator\Release\dll\libusb-1.0.dll ..\..\..\installed\$platform\bin
 cp -Force ..\build\$toolset_used\$generator\Release\dll\libusb-1.0.pdb ..\..\..\installed\$platform\bin
