@@ -1,4 +1,4 @@
-﻿param([string]$platform="x64-windows") #or x86-windows, arm64-windows
+param([string]$platform="x64-windows") #or x86-windows, arm64-windows
 $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
@@ -151,7 +151,7 @@ cp -Force ..\build\$toolset_used\$generator\Debug\dll\libusb-1.0.pdb ..\..\..\in
 cp -Force ..\build\$toolset_used\$generator\Debug\dll\libusb-1.0.lib ..\..\..\installed\$platform\Debug\lib
 cp -force ..\libusb\libusb.h ..\..\..\installed\$platform\include
 cd ..\..
-rm -recurse -force libusb
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue libusb
 
 Write-Output "Building cpu_features..."
 git clone https://github.com/google/cpu_features # -b 0.9.1 (not released as of this writing)
@@ -163,7 +163,7 @@ cmake $build_args -DBUILD_TESTING=OFF -DBUILD_EXECUTABLE=OFF ..
 cmake --build . --config Release
 cmake --install .
 cd ..\..
-rm -recurse -force cpu_features
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue cpu_features
 
 Write-Output "Building Volk..."
 #git clone https://github.com/gnuradio/volk --depth 1 -b v3.1.2
@@ -175,7 +175,7 @@ cmake $build_args -DENABLE_TESTING=OFF -DENABLE_MODTOOL=OFF ..
 cmake --build . --config Release
 cmake --install .
 cd ..\..
-rm -recurse -force volk
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue volk
 
 Write-Output "Building Airspy..."
 #git clone https://github.com/airspy/airspyone_host --depth 1 #-b v1.0.10
@@ -187,7 +187,7 @@ cmake $build_args -DLIBUSB_INCLUDE_DIR="$($libusb_include)" -DLIBUSB_LIBRARIES="
 cmake --build . --config Release
 cmake --install .
 cd ..\..\..
-rm -recurse -force airspyone_host
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue airspyone_host
 
 Write-Output "Building Airspy HF..."
 #git clone https://github.com/airspy/airspyhf --depth 1 #-b 1.6.8
@@ -199,7 +199,7 @@ cmake $build_args -DLIBUSB_INCLUDE_DIR="$($libusb_include)" -DLIBUSB_LIBRARIES="
 cmake --build . --config Release
 cmake --install .
 cd ..\..\..
-rm -recurse -force airspyhf
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue airspyhf
 
 Write-Output "Building RTL-SDR..."
 #git clone https://github.com/osmocom/rtl-sdr --depth 1 -b v2.0.2
@@ -211,7 +211,7 @@ cmake $build_args -DLIBUSB_INCLUDE_DIRS="$($libusb_include)" -DLIBUSB_LIBRARIES=
 cmake --build . --config Release
 cmake --install .
 cd ..\..
-rm -recurse -force librtlsdr
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue librtlsdr
 
 Write-Output "Building HackRF..."
 #git clone https://github.com/greatscottgadgets/hackrf --depth 1 -b v2024.02.1
@@ -223,7 +223,7 @@ cmake $build_args -DLIBUSB_INCLUDE_DIR="$($libusb_include)" -DLIBUSB_LIBRARIES="
 cmake --build . --config Release
 cmake --install .
 cd ..\..\..\..
-rm -recurse -force hackrf
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue hackrf
 
 Write-Output "Building libiio..."
 git clone https://github.com/analogdevicesinc/libiio --depth 1 -b v0.25
@@ -235,7 +235,7 @@ cmake $build_args -DWITH_IIOD=OFF -DWITH_TESTS=OFF -DWITH_ZSTD=ON -DLIBUSB_INCLU
 cmake --build . --config Release
 cmake --install .
 cd ..\..
-rm -recurse -force libiio
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue libiio
 
 Write-Output "Building libad9361-iio..."
 git clone https://github.com/analogdevicesinc/libad9361-iio --depth 1 -b v0.3
@@ -246,7 +246,7 @@ cmake $build_args -DLIBIIO_LIBRARIES="$($(Get-Item ..\..\..\installed\$platform\
 cmake --build . --config Release
 cmake --install .
 cd ..\..
-rm -recurse -force libad9361-iio
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue libad9361-iio
 
 # Not compatible with ARM at this time
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
@@ -263,7 +263,7 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
     cmake --build . --config Release
     cmake --install .
     cd ..\..
-    rm -recurse -force LimeSuite
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue LimeSuite
 }
 
 Write-Output "Building bladeRF..."
@@ -278,12 +278,12 @@ cmake $build_args $fx3_arg -DTREAT_WARNINGS_AS_ERRORS=OFF -DLIBPTHREADSWIN32_INC
 cmake --build . --config Release
 cmake --install .
 cd ..\..\..
-rm -recurse -force bladeRF
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue bladeRF
 
 # Not compatible with ARM at this time
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 {
-    rm -recurse -force FX3-SDK, FX3-SDK.zip
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue FX3-SDK, FX3-SDK.zip
     Write-Output "Building UHD..."
     git clone https://github.com/EttusResearch/uhd --depth 1 -b v4.7.0.0
     cd uhd\host
@@ -293,11 +293,11 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
     cmake --build . --config Release
     cmake --install .
     cd ..\..\..
-    rm -recurse -force uhd
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue uhd
 }
 
 cd ..
-rm -recurse -force build
+Remove-Item -Recurse -Force -ErrorAction SilentlyContinue build
 
 #Install SDRPlay API
 Get-VerifiedZip -Uri "https://www.satdump.org/SDRPlay.zip" -OutFile sdrplay.zip
