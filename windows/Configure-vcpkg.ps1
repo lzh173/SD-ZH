@@ -135,8 +135,13 @@ if($env:PROCESSOR_ARCHITECTURE -ne $arch)
 Write-Output "Building libusb..."
 git clone https://github.com/HannesFranke-smartoptics/libusb -b raw_io_v2
 cd libusb\msvc
-msbuild -m -v:m -p:Platform=$generator -p:Configuration=Release -p:TreatWarningAsError=false .\libusb.sln
-msbuild -m -v:m -p:Platform=$generator -p:Configuration=Debug -p:TreatWarningAsError=false .\libusb.sln
+Get-ChildItem -Recurse -Filter *.vcxproj | ForEach-Object {
+    $proj = Get-Content -Raw $_.FullName
+    $proj = $proj -replace '<TreatWarningAsError>true</TreatWarningAsError>', '<TreatWarningAsError>false</TreatWarningAsError>'
+    Set-Content -NoNewline -Path $_.FullName -Value $proj
+}
+msbuild -m -v:m -p:Platform=$generator -p:Configuration=Release .\libusb.sln
+msbuild -m -v:m -p:Platform=$generator -p:Configuration=Debug .\libusb.sln
 $toolset_used=$(get-childitem ..\build\)[0].Name
 cp -Force ..\build\$toolset_used\$generator\Release\dll\libusb-1.0.dll ..\..\..\installed\$platform\bin
 cp -Force ..\build\$toolset_used\$generator\Release\dll\libusb-1.0.pdb ..\..\..\installed\$platform\bin
