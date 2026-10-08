@@ -38,6 +38,21 @@ jobs:
         if: steps.win-deps-x64.outputs.cache-hit != 'true'
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install MSYS2 pkgconf (pre-seed for openblas)
+        shell: powershell
+        run: |
+          if (-Not (Test-Path "C:\tools\msys64")) {
+            choco install msys2 -y
+            refreshenv
+          }
+          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm mingw-w64-x86_64-pkgconf"
+          $pkg = Get-ChildItem "C:\tools\msys64\var\cache\pacman\pkg" -Filter "mingw-w64-x86_64-pkgconf-*.pkg.tar.zst" | Sort-Object Name -Descending | Select-Object -First 1
+          if ($pkg) {
+            New-Item -ItemType Directory -Force "$Env:GITHUB_WORKSPACE\vcpkg\downloads" | Out-Null
+            Copy-Item $pkg.FullName "$Env:GITHUB_WORKSPACE\vcpkg\downloads\msys2-$($pkg.Name)"
+            Write-Host "Pre-seeded $($pkg.Name) into vcpkg downloads"
+          }
+
       - name: Configure vcpkg
         shell: powershell
         run: |
@@ -49,24 +64,6 @@ jobs:
             .\bootstrap-vcpkg.bat
           }
           & "$Env:GITHUB_WORKSPACE\windows\Configure-vcpkg.ps1" -platform x64-windows
-
-      - name: Install MSYS2 Mingw packages (fallback for MSYS2 404)
-        if: steps.win-deps-x64.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          if (-Not (Test-Path "C:\tools\msys64")) {
-            choco install msys2 -y
-            refreshenv
-          }
-          C:\tools\msys64\usr\bin\bash.exe -lc "pacman -Sy --noconfirm mingw-w64-x86_64-pkgconf"
-
-      - name: Clean up vcpkg
-        if: steps.win-deps-x64.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          Remove-Item -Recurse -Force "$Env:GITHUB_WORKSPACE\vcpkg\packages" -ErrorAction SilentlyContinue
-          Remove-Item -Recurse -Force "$Env:GITHUB_WORKSPACE\vcpkg\downloads" -ErrorAction SilentlyContinue
-          Remove-Item -Recurse -Force "$Env:GITHUB_WORKSPACE\vcpkg\buildtrees" -ErrorAction SilentlyContinue
 
       - name: Download Aaronia RTSA API
         if: steps.win-deps-x64.outputs.cache-hit != 'true'

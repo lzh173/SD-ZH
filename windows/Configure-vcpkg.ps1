@@ -2,6 +2,21 @@
 $ErrorActionPreference = "Stop"
 $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
+function Get-VerifiedZip([string]$Uri, [string]$OutFile)
+{
+    Invoke-WebRequest -Uri $Uri -OutFile $OutFile
+    $bytes = [System.IO.File]::ReadAllBytes($OutFile)[0..3]
+    $magic = [System.Text.Encoding]::ASCII.GetString($bytes)
+    if ($magic -ne "PK" + [char]3 + [char]4)
+    {
+        $size = (Get-Item $OutFile).Length
+        $head = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes($OutFile)[0..([Math]::Min(199, $size-1))])
+        Remove-Item $OutFile -Force
+        Write-Error "Downloaded file from $Uri is not a ZIP (size: $size bytes, starts with: $($head.Substring(0, [Math]::Min(100, $head.Length)))). The site may be serving a bot-challenge page."
+        exit 1
+    }
+}
+
 if(!!(Get-Command 'tf' -ErrorAction SilentlyContinue) -eq $false -and $Env:GITHUB_WORKSPACE -eq $null)
 {
     Write-Error "You must run this script within Developer Powershell for Visual Studio"
@@ -63,11 +78,19 @@ Write-Output "Configuring vcpkg..."
 cd "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\.."
 git clone https://github.com/microsoft/vcpkg
 cd vcpkg
-git checkout 68d3499
 .\bootstrap-vcpkg.bat
 
-# Core packages. libxml2 is for libiio
-.\vcpkg install --triplet $platform pthreads libjpeg-turbo tiff libpng glfw3 libusb fftw3 libxml2 portaudio nng zstd armadillo opencl curl[schannel] hdf5
+# Core packages. libxml2 is for libiio. These must succeed.
+.\vcpkg install --triplet $platform pthreads libjpeg-turbo tiff libpng glfw3 libusb fftw3 libxml2 portaudio nng zstd curl[schannel]
+
+# Optional: armadillo pulls openblas which needs an MSYS2 pkgconf download that
+# can 404 when the pinned version rotates out of mirrors. Losing these only
+# disables some less common plugins; core SatDump builds fine without them.
+.\vcpkg install --triplet $platform armadillo opencl hdf5
+if ($LASTEXITCODE -ne 0)
+{
+    Write-Warning "Optional packages (armadillo/opencl/hdf5) failed to install; continuing without them."
+}
 
 # Entirely for UHD...
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
@@ -207,7 +230,7 @@ rm -recurse -force libad9361-iio
 if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 {
     Write-Output "Building LimeSuite..."
-    Invoke-WebRequest -Uri "https://www.satdump.org/FX3-SDK.zip" -OutFile FX3-SDK.zip
+    Get-VerifiedZip -Uri "https://www.satdump.org/FX3-SDK.zip" -OutFile FX3-SDK.zip
     Expand-Archive FX3-SDK.zip .
     $fx3_arg = "-DFX3_SDK_PATH=$($(Get-Item .\FX3-SDK).FullName)"
     git clone https://github.com/myriadrf/LimeSuite --depth 1 -b v23.11.0
@@ -255,7 +278,7 @@ cd ..
 rm -recurse -force build
 
 #Install SDRPlay API
-Invoke-WebRequest -Uri "https://www.satdump.org/SDRPlay.zip" -OutFile sdrplay.zip
+Get-VerifiedZip -Uri "https://www.satdump.org/SDRPlay.zip" -OutFile sdrplay.zip
 mkdir sdrplay | Out-Null
 Expand-Archive sdrplay.zip .
 cp sdrplay\API\inc\*.h installed\$platform\include
