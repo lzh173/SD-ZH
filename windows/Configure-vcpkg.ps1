@@ -126,7 +126,7 @@ $standard_include=$(Get-Item ..\installed\$platform\include).FullName
 $pthread_lib=$(Get-Item ..\installed\$platform\lib\pthreadVC3.lib).FullName
 $libusb_include=$(Get-Item ..\installed\$platform\include\libusb-1.0).FullName
 $libusb_lib=$(Get-Item ..\installed\$platform\lib\libusb-1.0.lib).FullName
-$libusb_version=$(Get-Item ..\installed\$platform\vcpkg\info\libusb*).BaseName.split('_')[1]
+$libusb_version=$(Get-Item ..\installed\vcpkg\info\libusb*).BaseName.split('_')[1]
 if($env:PROCESSOR_ARCHITECTURE -ne $arch)
 {
     $build_args += "-DCMAKE_SYSTEM_NAME=Windows", "-DCMAKE_SYSTEM_PROCESSOR=$arch", "-DCMAKE_CROSSCOMPILING=ON", "-DVCPKG_USE_HOST_TOOLS=ON", "-DVCPKG_HOST_TRIPLET=$host_triplet"
