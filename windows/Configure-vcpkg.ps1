@@ -4,6 +4,7 @@ $PSDefaultParameterValues['*:ErrorAction']='Stop'
 
 function Get-VerifiedZip([string]$Uri, [string]$OutFile)
 {
+    $OutFile = Join-Path (Get-Location) $OutFile
     Invoke-WebRequest -Uri $Uri -OutFile $OutFile
     $bytes = [System.IO.File]::ReadAllBytes($OutFile)[0..3]
     $magic = [System.Text.Encoding]::ASCII.GetString($bytes)
@@ -263,6 +264,7 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
     cmake --build . --config Release
     cmake --install .
     cd ..\..
+    Set-Location "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\.."
     Remove-Item -Recurse -Force -ErrorAction SilentlyContinue LimeSuite
 }
 
