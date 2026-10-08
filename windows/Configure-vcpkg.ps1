@@ -266,6 +266,8 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
     }
     git clone https://github.com/myriadrf/LimeSuite --depth 1 -b v23.11.0
     cd LimeSuite
+    # Newer MSVC headers no longer pull in <chrono> transitively.
+    (Get-Content -Raw src\protocols\fifo.h) -replace '#include <mutex>', "#include <chrono>`r`n#include <mutex>" | Set-Content -NoNewline src\protocols\fifo.h
     $null = mkdir build-dir
     cd build-dir
     cmake $build_args -DENABLE_GUI=OFF $fx3_arg ..
