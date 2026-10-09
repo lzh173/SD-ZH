@@ -340,9 +340,9 @@ if(Test-Path installed\$platform\lib\*.dll) { mv installed\$platform\lib\*.dll i
 if(Test-Path installed\$platform\bin\*.lib) { mv installed\$platform\bin\*.lib installed\$platform\lib\ }
 cd ..
 
-if (-Not (Test-Path "installed\$platform\lib\pthreadVC3.lib"))
+if (-Not (Test-Path "vcpkg\installed\$platform\lib\pthreadVC3.lib"))
 {
     Write-Error "pthreadVC3.lib not found after vcpkg install. Installed libs:"
-    Get-ChildItem "installed\$platform\lib" -Filter "*.lib" | ForEach-Object { Write-Output $_.Name }
+    Get-ChildItem "vcpkg\installed\$platform\lib" -Filter "*.lib" | ForEach-Object { Write-Output $_.Name }
     exit 1
 }
