@@ -336,8 +336,8 @@ catch
 }
 
 #Clean Up (Some packages are silly)
-mv installed\$platform\lib\*.dll installed\$platform\bin\
-mv installed\$platform\bin\*.lib installed\$platform\lib\
+if(Test-Path installed\$platform\lib\*.dll) { mv installed\$platform\lib\*.dll installed\$platform\bin\ }
+if(Test-Path installed\$platform\bin\*.lib) { mv installed\$platform\bin\*.lib installed\$platform\lib\ }
 cd ..
 
 if (-Not (Test-Path "installed\$platform\lib\pthreadVC3.lib"))
