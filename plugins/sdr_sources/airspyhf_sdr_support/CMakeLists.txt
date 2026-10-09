@@ -11,7 +11,7 @@ if(AIRSPYHF_LIBRARY OR MSVC OR ANDROID)
     target_include_directories(airspyhf_sdr_support PUBLIC src)
 
     if(MSVC)
-        target_link_libraries(airspyhf_sdr_support PUBLIC satdump_core airspyhf.dll)
+        target_link_libraries(airspyhf_sdr_support PUBLIC satdump_core ${AIRSPYHF_LIBRARY})
         install(TARGETS airspyhf_sdr_support DESTINATION ${CMAKE_INSTALL_LIBDIR}/satdump/plugins RUNTIME_DEPENDENCY_SET satdump_deps)
     elseif(ANDROID)
         target_link_libraries(airspyhf_sdr_support PUBLIC satdump_core airspyhf usb)

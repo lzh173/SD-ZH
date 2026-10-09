@@ -85,7 +85,8 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{runner.workspace}}/build
-        run: cmake -DVCPKG_TARGET_TRIPLET="x64-windows" -DPLUGIN_SDRPLAY_SDR_SUPPORT=$env:PLUGIN_SDRPLAY_SDR_SUPPORT -DPLUGIN_AARONIA_SDR_SUPPORT=$env:PLUGIN_AARONIA_SDR_SUPPORT -DBUILD_MSVC=ON -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" "$Env:GITHUB_WORKSPACE"
+        shell: powershell
+        run: cmake -DVCPKG_TARGET_TRIPLET="x64-windows" -DPLUGIN_SDRPLAY_SDR_SUPPORT="$env:PLUGIN_SDRPLAY_SDR_SUPPORT" -DPLUGIN_AARONIA_SDR_SUPPORT="$env:PLUGIN_AARONIA_SDR_SUPPORT" -DBUILD_MSVC=ON -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" "$Env:GITHUB_WORKSPACE"
 
       - name: Build
         working-directory: ${{runner.workspace}}/build

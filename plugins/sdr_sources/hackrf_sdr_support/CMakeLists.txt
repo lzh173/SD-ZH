@@ -11,7 +11,7 @@ if(HACKRF_LIBRARY OR MSVC OR ANDROID)
     target_include_directories(hackrf_sdr_support PUBLIC src)
 
     if(MSVC)
-        target_link_libraries(hackrf_sdr_support PUBLIC satdump_core hackrf.dll)
+        target_link_libraries(hackrf_sdr_support PUBLIC satdump_core ${HACKRF_LIBRARY})
         install(TARGETS hackrf_sdr_support DESTINATION ${CMAKE_INSTALL_LIBDIR}/satdump/plugins RUNTIME_DEPENDENCY_SET satdump_deps)
     elseif(ANDROID)
         target_link_libraries(hackrf_sdr_support PUBLIC satdump_core hackrf usb)

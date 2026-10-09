@@ -118,7 +118,7 @@ if ($LASTEXITCODE -ne 0)
 # Optional: armadillo pulls openblas which needs an MSYS2 pkgconf download that
 # can 404 when the pinned version rotates out of mirrors. Losing these only
 # disables some less common plugins; core SatDump builds fine without them.
-.\vcpkg install --triplet $platform armadillo opencl hdf5
+.\vcpkg install --triplet $platform armadillo opencl "hdf5[hl]"
 if ($LASTEXITCODE -ne 0)
 {
     Write-Warning "Optional packages (armadillo/opencl/hdf5) failed to install; continuing without them."
