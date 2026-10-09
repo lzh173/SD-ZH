@@ -301,7 +301,7 @@ if($platform -eq "x64-windows" -or $platform -eq "x86-windows")
 {
     if($fx3_arg) { Remove-Item -Recurse -Force -ErrorAction SilentlyContinue FX3-SDK, FX3-SDK.zip }
     Write-Output "Building UHD..."
-    git clone https://github.com/EttusResearch/uhd --depth 1 -b v4.7.0.0
+    git clone https://github.com/EttusResearch/uhd --depth 1 -b v4.9.0.1
     cd uhd\host
     $null = mkdir build
     cd build
