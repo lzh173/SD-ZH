@@ -305,6 +305,17 @@ endif()
 option(PLUGIN_SDRPLAY_SDR_SUPPORT "Enable SDRPlay SDR Support plugin" ON)
 
 if(PLUGIN_SDRPLAY_SDR_SUPPORT)
+  if(MSVC)
+    find_path(SDRPLAY_INCLUDE_DIR sdrplay_api.h
+      HINTS ${CMAKE_TOOLCHAIN_FILE}/../../../installed/${VCPKG_TARGET_TRIPLET}/include)
+    if(NOT SDRPLAY_INCLUDE_DIR)
+      message(WARNING "SDRPlay API header not found; disabling SDRPlay SDR Support plugin")
+      set(PLUGIN_SDRPLAY_SDR_SUPPORT OFF)
+    endif()
+  endif()
+endif()
+
+if(PLUGIN_SDRPLAY_SDR_SUPPORT)
   add_subdirectory(sdr_sources/sdrplay_sdr_support)
 endif()
 
@@ -358,7 +369,7 @@ endif()
 
 option(PLUGIN_AARONIA_SDR_SUPPORT "Enable Aaronia Spectran Support plugin" OFF)
 
-if(PLUGIN_AARONIA_SDR_SUPPORT)
+if(PLUGIN_AARONIA_SDR_SUPPORT AND MSVC)
   add_subdirectory(sdr_sources/aaronia_sdr_support)
 endif()
 

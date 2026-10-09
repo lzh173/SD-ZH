@@ -26,6 +26,20 @@ if(!!(Get-Command 'tf' -ErrorAction SilentlyContinue) -eq $false -and $Env:GITHU
 if(Test-Path "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\vcpkg" -ErrorAction SilentlyContinue)
 {
     Write-Output "$(Split-Path -Parent $MyInvocation.MyCommand.Path)\..\vcpkg already found! Not setting up."
+    $repoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
+    if (-Not (Test-Path "$repoRoot\vcpkg\installed\$platform\include\sdrplay_api.h"))
+    {
+        "PLUGIN_SDRPLAY_SDR_SUPPORT=OFF" >> $Env:GITHUB_ENV
+    }
+    else
+    {
+        "PLUGIN_SDRPLAY_SDR_SUPPORT=ON" >> $Env:GITHUB_ENV
+    }
+    if (-Not (Test-Path "$repoRoot\vcpkg\installed\$platform\lib\zlib.lib"))
+    {
+        Write-Error "zlib.lib not found in cached vcpkg installation."
+        exit 1
+    }
     exit 1
 }
 
@@ -329,15 +343,20 @@ try
     cp sdrplay\API\$sdrplay_arch\sdrplay_api.lib installed\$platform\lib
     Remove-Item sdrplay -Force -Recurse -ErrorAction SilentlyContinue
     Remove-Item sdrplay.zip
+    "PLUGIN_SDRPLAY_SDR_SUPPORT=ON" >> $Env:GITHUB_ENV
 }
 catch
 {
     Write-Warning "SDRPlay API download failed, skipping SDRPlay support: $_"
+    "PLUGIN_SDRPLAY_SDR_SUPPORT=OFF" >> $Env:GITHUB_ENV
 }
 
 #Clean Up (Some packages are silly)
 if(Test-Path installed\$platform\lib\*.dll) { mv installed\$platform\lib\*.dll installed\$platform\bin\ }
 if(Test-Path installed\$platform\bin\*.lib) { mv installed\$platform\bin\*.lib installed\$platform\lib\ }
+
+#Some rawio builds install their import libraries beside the DLL.
+if(Test-Path installed\$platform\bin\*.lib) { cp -Force installed\$platform\bin\*.lib installed\$platform\lib\ }
 cd ..
 
 if (-Not (Test-Path "$env:GITHUB_WORKSPACE\vcpkg\installed\$platform\lib\pthreadVC3.lib"))
