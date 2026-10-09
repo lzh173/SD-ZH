@@ -50,14 +50,31 @@ jobs:
           }
           & "$Env:GITHUB_WORKSPACE\windows\Configure-vcpkg.ps1" -platform x64-windows
 
-      - name: Download Aaronia RTSA API
+      - name: Install Aaronia RTSA API
         if: steps.win-deps-x64.outputs.cache-hit != 'true'
         shell: powershell
-        run: Invoke-WebRequest -Uri "https://www.satdump.org/Aaronia_RTSA_Suite_PRO_2.2.0.12821_Setup_64bit.exe" -OutFile $Env:GITHUB_WORKSPACE/vcpkg/rtsa.exe
+        run: |
+          $exe = "$Env:GITHUB_WORKSPACE\vcpkg\rtsa.exe"
+          try {
+            Invoke-WebRequest -Uri "https://www.satdump.org/Aaronia_RTSA_Suite_PRO_2.2.0.12821_Setup_64bit.exe" -OutFile $exe
+          } catch {
+            Remove-Item $exe -Force -ErrorAction SilentlyContinue
+            Write-Warning "Aaronia RTSA API download failed, skipping Aaronia support: $_"
+            "PLUGIN_AARONIA_SDR_SUPPORT=OFF" >> $Env:GITHUB_ENV
+            exit 0
+          }
 
-      - name: Install Aaronia RTSA API
-        shell: cmd
-        run: start /wait vcpkg\rtsa.exe /q2 /install
+          $bytes = [IO.File]::ReadAllBytes($exe)
+          if ($bytes.Length -lt 10MB -or $bytes[0] -ne 0x4D -or $bytes[1] -ne 0x5A) {
+            $preview = [Text.Encoding]::ASCII.GetString($bytes[0..([Math]::Min(79, $bytes.Length-1))])
+            Remove-Item $exe -Force
+            Write-Warning "Aaronia RTSA API download is not an executable (size: $($bytes.Length), starts with: $preview). The site may be serving a bot-challenge page."
+            "PLUGIN_AARONIA_SDR_SUPPORT=OFF" >> $Env:GITHUB_ENV
+            exit 0
+          }
+
+          cmd /c start /wait vcpkg\rtsa.exe /q2 /install
+          "PLUGIN_AARONIA_SDR_SUPPORT=ON" >> $Env:GITHUB_ENV
 
       - name: Add support to NSIS for long PATHs
         shell: powershell
@@ -68,7 +85,7 @@ jobs:
 
       - name: Configure CMake
         working-directory: ${{runner.workspace}}/build
-        run: cmake -DVCPKG_TARGET_TRIPLET="x64-windows" -DPLUGIN_AARONIA_SDR_SUPPORT=ON -DBUILD_MSVC=ON -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" "$Env:GITHUB_WORKSPACE"
+        run: cmake -DVCPKG_TARGET_TRIPLET="x64-windows" -DPLUGIN_AARONIA_SDR_SUPPORT=$env:PLUGIN_AARONIA_SDR_SUPPORT -DBUILD_MSVC=ON -DCMAKE_TOOLCHAIN_FILE="${{github.workspace}}\vcpkg\scripts\buildsystems\vcpkg.cmake" "$Env:GITHUB_WORKSPACE"
 
       - name: Build
         working-directory: ${{runner.workspace}}/build
